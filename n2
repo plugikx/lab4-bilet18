@@ -1,0 +1,73 @@
+#include <iostream>
+#include <vector>
+
+// Метод Крамера для решения системы линейных уравнений
+std::vector<double> solveUsingCramer(const std::vector<std::vector<double>>& matrix, const std::vector<double>& constants) {
+    int n = constants.size();
+    std::vector<double> solution(n, 0.0);
+    double determinant = matrix[0][0] * matrix[1][1] * matrix[2][2] + matrix[0][1] * matrix[1][2] * matrix[2][0] + matrix[0][2] * matrix[1][0] * matrix[2][1] -
+                         matrix[0][0] * matrix[1][2] * matrix[2][1] - matrix[0][1] * matrix[1][0] * matrix[2][2] - matrix[0][2] * matrix[1][1] * matrix[2][0];
+
+    if (determinant == 0) {
+        std::cerr << "Singular matrix, no unique solution exists." << std::endl;
+        return solution;
+    }
+
+    for (int i = 0; i < n; ++i) {
+        std::vector<std::vector<double>> temp_matrix = matrix;
+        for (int j = 0; j < n; ++j) {
+            temp_matrix[j][i] = constants[j];
+        }
+        double temp_determinant = temp_matrix[0][0] * temp_matrix[1][1] * temp_matrix[2][2] + temp_matrix[0][1] * temp_matrix[1][2] * temp_matrix[2][0] + temp_matrix[0][2] * temp_matrix[1][0] * temp_matrix[2][1] -
+                                  temp_matrix[0][0] * temp_matrix[1][2] * temp_matrix[2][1] - temp_matrix[0][1] * temp_matrix[1][0] * temp_matrix[2][2] - temp_matrix[0][2] * temp_matrix[1][1] * temp_matrix[2][0];
+        solution[i] = temp_determinant / determinant;
+    }
+
+    return solution;
+}
+
+// Метод Якоби для итерационного решения системы линейных уравнений
+std::vector<double> solveUsingJacobi(const std::vector<std::vector<double>>& matrix, const std::vector<double>& constants, int iterations) {
+    int n = constants.size();
+    std::vector<double> solution(n, 0.0);
+    std::vector<double> next_solution(n, 0.0);
+
+    for (int iter = 0; iter < iterations; ++iter) {
+        for (int i = 0; i < n; ++i) {
+            next_solution[i] = constants[i];
+            for (int j = 0; j < n; ++j) {
+                if (j != i) {
+                    next_solution[i] -= matrix[i][j] * solution[j];
+                }
+            }
+            next_solution[i] /= matrix[i][i];
+        }
+        solution = next_solution;
+    }
+
+    return solution;
+}
+
+int main() {
+    std::vector<std::vector<double>> matrix = {{5, 3, -2}, {2, 1, -1}, {3, -2, -3}};
+    std::vector<double> constants = {-1, 0, 2};
+
+    // Решение методом Крамера
+    std::vector<double> cramer_solution = solveUsingCramer(matrix, constants);
+    std::cout << "Solution using Cramer's method:" << std::endl;
+    for (double sol : cramer_solution) {
+        std::cout << sol << " ";
+    }
+    std::cout << std::endl;
+
+    // Решение методом Якоби
+    int iterations = 100;
+    std::vector<double> jacobi_solution = solveUsingJacobi(matrix, constants, iterations);
+    std::cout << "Solution using Jacobi method after " << iterations << " iterations:" << std::endl;
+    for (double sol : jacobi_solution) {
+        std::cout << sol << " ";
+    }
+    std::cout << std::endl;
+
+    return 0;
+}
